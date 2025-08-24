@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Tampilan Data Mahasiswa</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a6491;
+            --secondary-color: #2c3e50;
+            --accent-color: #3498db;
+            --light-color: #f5f7fa;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+            --text-color: #333;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+        }
+        
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .filter-btn {
+            padding: 8px 15px;
+            background-color: #f1f1f1;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .filter-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            flex: 1;
+            min-width: 200px;
+            background-color: white;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        .stat-card .count {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 20px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        th:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        th::after {
+            content: '';
+            display: inline-block;
+            margin-left: 5px;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid #fff;
+            opacity: 0.5;
+        }
+        
+        tr {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        tr:hover {
+            background-color: #f0f5ff;
+        }
+        
+        .status-aktif {
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .status-no-data {
+            border-left: 4px solid var(--warning-color);
+        }
+        
+        .status-dikeluarkan {
+            border-left: 4px solid var(--danger-color);
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 5px;
+        }
+        
+        .pagination button {
+            padding: 8px 12px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .pagination button.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            position: relative;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #888;
+        }
+        
+        .close-btn:hover {
+            color: var(--text-color);
+        }
+        
+        .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h2 {
+            color: var(--secondary-color);
+        }
+        
+        .info-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            width: 200px;
+        }
+        
+        .info-value {
+            padding: 8px 12px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            flex: 1;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #777;
+        }
+        
+        @media (max-width: 768px) {
+            .info-group {
+                flex-direction: column;
+            }
+            
+            .info-label {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 id="appTitle">Data Mahasiswa Reguler 2022/1444</h1>
+            <p class="subtitle" id="appSubtitle">Informasi lengkap data mahasiswa beserta status dan pembayaran</p>
+        </header>
+        
+        <div class="controls">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Cari...">
+            </div>
+            <div id="filtersContainer" class="filters">
+                <!-- Filter akan diisi oleh JavaScript -->
+            </div>
+        </div>
+        
+        <div class="stats" id="statsContainer">
+            <!-- Statistik akan diisi oleh JavaScript -->
+        </div>
+        
+        <table>
+            <thead id="tableHeader">
+                <!-- Header tabel akan diisi oleh JavaScript -->
+            </thead>
+            <tbody id="dataBody">
+                <!-- Data akan diisi oleh JavaScript -->
+            </tbody>
+        </table>
+        
+        <div class="pagination" id="pagination">
+            <!-- Pagination akan diisi oleh JavaScript -->
+        </div>
+        
+        <footer>
+            <p>&copy; 2023 Data Mahasiswa Reguler. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- Modal untuk detail mahasiswa -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModal">&times;</span>
+            <div class="modal-header">
+                <h2 id="modalTitle">Detail Mahasiswa</h2>
+            </div>
+            <div id="modalContent">
+                <!-- Konten modal akan diisi oleh JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Konfigurasi JSON yang menentukan tampilan dan perilaku aplikasi
+        const appConfig = {
+            "title": "Data Mahasiswa Reguler 2022/1444",
+            "subtitle": "Informasi lengkap data mahasiswa beserta status dan pembayaran",
+            "columns": [
+                {"key": "No", "title": "No", "type": "number", "width": "50px"},
+                {"key": "NAMA", "title": "Nama", "type": "string", "width": "200px"},
+                {"key": "NIM SUI", "title": "NIM", "type": "number", "width": "100px"},
+                {"key": "STATUS DIKTI", "title": "Status DIKTI", "type": "string", "width": "120px"},
+                {"key": "Total Pembayaran", "title": "Pembayaran", "type": "currency", "width": "120px"}
+            ],
+            "filters": [
+                {"key": "all", "title": "Semua", "default": true},
+                {"key": "AKTIF", "title": "Aktif"},
+                {"key": "NO DATA", "title": "No Data"},
+                {"key": "DIKELUARKAN", "title": "Dikeluarkan"}
+            ],
+            "stats": [
+                {"key": "total", "title": "Total Mahasiswa", "calculation": "count"},
+                {"key": "AKTIF", "title": "Status Aktif", "calculation": "filterCount", "filterKey": "STATUS DIKTI", "filterValue": "AKTIF"},
+                {"key": "NO DATA", "title": "No Data", "calculation": "filterCount", "filterKey": "STATUS DIKTI", "filterValue": "NO DATA"},
+                {"key": "DIKELUARKAN", "title": "Dikeluarkan", "calculation": "filterCount", "filterKey": "STATUS DIKTI", "filterValue": "DIKELUARKAN"},
+                {"key": "totalPayment", "title": "Total Pembayaran", "calculation": "sum", "sumKey": "Total Pembayaran"}
+            ],
+            "rowsPerPage": 10,
+            "modalConfig": {
+                "titleField": "NAMA",
+                "fields": [
+                    {"key": "NIM SUI", "title": "NIM"},
+                    {"key": "NIM DIKTI", "title": "NIM DIKTI"},
+                    {"key": "STATUS DIKTI", "title": "Status DIKTI"},
+                    {"key": "Email Address", "title": "Email"},
+                    {"key": "No. WA", "title": "No. WhatsApp"},
+                    {"key": "Total Pembayaran", "title": "Total Pembayaran", "type": "currency"}
+                ]
+            }
+        };
+
+        // Data mahasiswa (biasanya akan diambil dari API)
+        const jsonData = [
+            {
+                "No": 2,
+                "NAMA": "Abdullah Mursid Ridho",
+                "Email Address": "abdullah@example.com",
+                "NIM SUI": 1000697,
+                "NIM DIKTI": "",
+                "STATUS DIKTI": "AKTIF",
+                "Total Pembayaran": 250000
+            },
+            {
+                "No": 3,
+                "NAMA": "Abdurrahman Muttaqin",
+                "Email Address": "abdurrahman@example.com",
+                "NIM SUI": 1000698,
+                "NIM DIKTI": "",
+                "STATUS DIKTI": "AKTIF",
+                "Total Pembayaran": 4470000
+            },
+            {
+                "No": 4,
+                "NAMA": "Acep Yusup Khoerudin",
+                "Email Address": "acep@example.com",
+                "NIM SUI": 1000699,
+                "NIM DIKTI": 212201255,
+                "STATUS DIKTI": "AKTIF",
+                "Total Pembayaran": 16190000
+            },
+            {
+                "No": 5,
+                "NAMA": "Adam Zaini",
+                "Email Address": "adam@example.com",
+                "NIM SUI": 1000700,
+                "NIM DIKTI": "",
+                "STATUS DIKTI": "NO DATA",
+                "Total Pembayaran": 4700000
+            },
+            {
+                "No": 6,
+                "NAMA": "Ade Irvan",
+                "Email Address": "ade@example.com",
+                "NIM SUI": 1000701,
+                "NIM DIKTI": "",
+                "STATUS DIKTI": "DIKELUARKAN",
+                "Total Pembayaran": 620000
+            }
+        ];
+
+        // Variabel global
+        let currentPage = 1;
+        let filteredData = [];
+        let sortDirection = {};
+
+        // Fungsi untuk inisialisasi aplikasi
+        function initApp() {
+            // Set judul aplikasi
+            document.getElementById('appTitle').textContent = appConfig.title;
+            document.getElementById('appSubtitle').textContent = appConfig.subtitle;
+            
+            // Setup filter
+            renderFilters();
+            
+            // Setup tabel
+            renderTableHeader();
+            
+            // Tampilkan data
+            filteredData = [...jsonData];
+            displayData(filteredData, currentPage);
+            
+            // Setup statistik
+            updateStats(filteredData);
+            
+            // Setup event listeners
+            setupEventListeners();
+        }
+
+        // Fungsi untuk merender filter
+        function renderFilters() {
+            const filtersContainer = document.getElementById('filtersContainer');
+            filtersContainer.innerHTML = '';
+            
+            appConfig.filters.forEach(filter => {
+                const button = document.createElement('button');
+                button.className = `filter-btn ${filter.default ? 'active' : ''}`;
+                button.textContent = filter.title;
+                button.setAttribute('data-filter', filter.key);
+                filtersContainer.appendChild(button);
+            });
+        }
+
+        // Fungsi untuk merender header tabel
+        function renderTableHeader() {
+            const tableHeader = document.getElementById('tableHeader');
+            tableHeader.innerHTML = '';
+            
+            const headerRow = document.createElement('tr');
+            appConfig.columns.forEach(column => {
+                const th = document.createElement('th');
+                th.textContent = column.title;
+                th.setAttribute('data-sort', column.key);
+                if (column.width) {
+                    th.style.width = column.width;
+                }
+                headerRow.appendChild(th);
+            });
+            
+            tableHeader.appendChild(headerRow);
+        }
+
+        // Fungsi untuk menampilkan data
+        function displayData(data, page) {
+            const tableBody = document.getElementById('dataBody');
+            tableBody.innerHTML = '';
+            
+            const rowsPerPage = appConfig.rowsPerPage || 10;
+            const start = (page - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const paginatedData = data.slice(start, end);
+            
+            paginatedData.forEach(row => {
+                const tr = document.createElement('tr');
+                
+                // Tambahkan class berdasarkan status
+                if (row['STATUS DIKTI']) {
+                    let statusClass = 'status-no-data';
+                    if (row['STATUS DIKTI'] === 'AKTIF') {
+                        statusClass = 'status-aktif';
+                    } else if (row['STATUS DIKTI'] === 'DIKELUARKAN') {
+                        statusClass = 'status-dikeluarkan';
+                    }
+                    tr.classList.add(statusClass);
+                }
+                
+                // Isi data sesuai kolom yang didefinisikan dalam config
+                appConfig.columns.forEach(column => {
+                    const td = document.createElement('td');
+                    let value = row[column.key] || '';
+                    
+                    // Format value berdasarkan tipe
+                    if (column.type === 'currency') {
+                        value = formatCurrency(value);
+                    }
+                    
+                    td.textContent = value;
+                    tr.appendChild(td);
+                });
+                
+                // Tambahkan event listener untuk menampilkan modal detail
+                tr.addEventListener('click', () => {
+                    showDetailModal(row);
+                });
+                
+                tableBody.appendChild(tr);
+            });
+            
+            updatePagination(data.length);
+        }
+
+        // Fungsi untuk update pagination
+        function updatePagination(totalRows) {
+            const rowsPerPage = appConfig.rowsPerPage || 10;
+            const totalPages = Math.ceil(totalRows / rowsPerPage);
+            const paginationDiv = document.getElementById('pagination');
+            paginationDiv.innerHTML = '';
+            
+            for (let i = 1; i <= totalPages; i++) {
+                const button = document.createElement('button');
+                button.innerText = i;
+                button.addEventListener('click', () => {
+                    currentPage = i;
+                    displayData(filteredData, currentPage);
+                });
+                if (i === currentPage) {
+                    button.classList.add('active');
+                }
+                paginationDiv.appendChild(button);
+            }
+        }
+
+        // Fungsi untuk update statistik
+        function updateStats(data) {
+            const statsContainer = document.getElementById('statsContainer');
+            statsContainer.innerHTML = '';
+            
+            appConfig.stats.forEach(stat => {
+                let value = 0;
+                
+                switch (stat.calculation) {
+                    case 'count':
+                        value = data.length;
+                        break;
+                    case 'filterCount':
+                        value = data.filter(item => item[stat.filterKey] === stat.filterValue).length;
+                        break;
+                    case 'sum':
+                        value = data.reduce((sum, item) => sum + (item[stat.sumKey] || 0), 0);
+                        break;
+                }
+                
+                const statCard = document.createElement('div');
+                statCard.className = 'stat-card';
+                
+                const title = document.createElement('h3');
+                title.textContent = stat.title;
+                
+                const count = document.createElement('div');
+                count.className = 'count';
+                
+                if (stat.calculation === 'sum') {
+                    count.textContent = formatCurrency(value);
+                } else {
+                    count.textContent = value;
+                }
+                
+                statCard.appendChild(title);
+                statCard.appendChild(count);
+                statsContainer.appendChild(statCard);
+            });
+        }
+
+        // Fungsi untuk format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        // Fungsi untuk setup event listeners
+        function setupEventListeners() {
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', () => {
+                const searchText = searchInput.value.toLowerCase();
+                applyFilters(searchText);
+            });
+            
+            // Filter functionality
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    const searchText = document.getElementById('searchInput').value.toLowerCase();
+                    applyFilters(searchText);
+                });
+            });
+            
+            // Sort functionality
+            const headers = document.querySelectorAll('th[data-sort]');
+            headers.forEach(header => {
+                header.addEventListener('click', () => {
+                    const column = header.getAttribute('data-sort');
+                    
+                    // Toggle sort direction
+                    if (!sortDirection[column]) {
+                        sortDirection[column] = 'asc';
+                    } else {
+                        sortDirection[column] = sortDirection[column] === 'asc' ? 'desc' : 'asc';
+                    }
+                    
+                    // Sort data
+                    filteredData.sort((a, b) => {
+                        let valueA = a[column];
+                        let valueB = b[column];
+                        
+                        // Handle numeric values
+                        const columnConfig = appConfig.columns.find(col => col.key === column);
+                        if (columnConfig && (columnConfig.type === 'number' || columnConfig.type === 'currency')) {
+                            valueA = Number(valueA) || 0;
+                            valueB = Number(valueB) || 0;
+                        } else {
+                            valueA = String(valueA || '').toLowerCase();
+                            valueB = String(valueB || '').toLowerCase();
+                        }
+                        
+                        if (valueA < valueB) {
+                            return sortDirection[column] === 'asc' ? -1 : 1;
+                        }
+                        if (valueA > valueB) {
+                            return sortDirection[column] === 'asc' ? 1 : -1;
+                        }
+                        return 0;
+                    });
+                    
+                    displayData(filteredData, currentPage);
+                });
+            });
+            
+            // Modal functionality
+            const modal = document.getElementById('detailModal');
+            const closeModal = document.getElementById('closeModal');
+            
+            closeModal.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+            
+            window.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // Fungsi untuk menerapkan filter
+        function applyFilters(searchText) {
+            const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
+            
+            filteredData = jsonData.filter(item => {
+                // Filter berdasarkan status
+                if (activeFilter !== 'all' && item['STATUS DIKTI'] !== activeFilter) {
+                    return false;
+                }
+                
+                // Filter berdasarkan pencarian
+                if (searchText) {
+                    const searchableValues = Object.values(item).map(value => 
+                        String(value).toLowerCase()
+                    );
+                    return searchableValues.some(value => value.includes(searchText));
+                }
+                
+                return true;
+            });
+            
+            currentPage = 1;
+            displayData(filteredData, currentPage);
+            updateStats(filteredData);
+        }
+
+        // Fungsi untuk menampilkan modal detail
+        function showDetailModal(data) {
+            const modal = document.getElementById('detailModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalTitle.textContent = `Detail: ${data[appConfig.modalConfig.titleField]}`;
+            
+            // Buat konten modal
+            modalContent.innerHTML = '';
+            appConfig.modalConfig.fields.forEach(field => {
+                const infoGroup = document.createElement('div');
+                infoGroup.className = 'info-group';
+                
+                const label = document.createElement('div');
+                label.className = 'info-label';
+                label.textContent = field.title;
+                
+                const value = document.createElement('div');
+                value.className = 'info-value';
+                
+                let fieldValue = data[field.key] || '-';
+                if (field.type === 'currency') {
+                    fieldValue = formatCurrency(fieldValue);
+                }
+                
+                value.textContent = fieldValue;
+                
+                infoGroup.appendChild(label);
+                infoGroup.appendChild(value);
+                modalContent.appendChild(infoGroup);
+            });
+            
+            modal.style.display = 'flex';
+        }
+
+        // Inisialisasi aplikasi saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
