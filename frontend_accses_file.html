@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Pengajuan Akses File</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --dark: #34495e;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--dark));
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--light);
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        button {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--primary);
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: var(--light);
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .status-pending {
+            color: var(--warning);
+            font-weight: 600;
+        }
+        
+        .status-approved {
+            color: var(--success);
+            font-weight: 600;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+        
+        .search-box input {
+            flex: 1;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .notification {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            background-color: var(--light);
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .notification.success {
+            background-color: #e8f5e9;
+            border-left-color: var(--success);
+        }
+        
+        .notification.warning {
+            background-color: #fff8e1;
+            border-left-color: var(--warning);
+        }
+        
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .two-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .file-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background-color: white;
+        }
+        
+        .file-card h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .file-meta {
+            color: #777;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--secondary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sistem Pengajuan Akses File</h1>
+            <p>Ajukan permintaan akses untuk melihat atau mengambil file</p>
+        </header>
+        
+        <div class="two-columns">
+            <div>
+                <div class="card">
+                    <h2 class="card-title">Form Pengajuan Akses</h2>
+                    <form id="requestForm">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" required placeholder="Alamat email yang valid">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="name">Nama Lengkap</label>
+                            <input type="text" id="name" required placeholder="Nama lengkap Anda">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="idNumber">Nomor ID</label>
+                            <input type="text" id="idNumber" required placeholder="Nomor identitas">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone">Nomor HP</label>
+                            <input type="tel" id="phone" required placeholder="Nomor handphone">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="fileRequest">File yang Diminta</label>
+                            <select id="fileRequest" required>
+                                <option value="">Pilih file yang diminta</option>
+                                <option value="file1">Laporan Keuangan 2023 (PDF)</option>
+                                <option value="file2">Gambar Proyek (JPG)</option>
+                                <option value="file3">Dokumen Kontrak (PDF)</option>
+                                <option value="file4">Presentasi Perusahaan (PDF)</option>
+                                <option value="file5">Foto Produk (JPG)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="purpose">Tujuan Pengajuan</label>
+                            <textarea id="purpose" rows="3" placeholder="Jelaskan tujuan Anda meminta akses file ini"></textarea>
+                        </div>
+                        
+                        <button type="submit">Ajukan Permintaan</button>
+                    </form>
+                </div>
+                
+                <div class="card">
+                    <h2 class="card-title">Cari Status Pengajuan</h2>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Masukkan nama, email, atau kode file">
+                        <button id="searchButton">Cari</button>
+                    </div>
+                    
+                    <div id="searchResults">
+                        <!-- Hasil pencarian akan ditampilkan di sini -->
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <div class="card">
+                    <h2 class="card-title">Daftar File Tersedia</h2>
+                    <div id="fileList">
+                        <div class="file-card">
+                            <h3>Laporan Keuangan 2023</h3>
+                            <div class="file-meta">Jenis: PDF | Ukuran: 2.4 MB</div>
+                            <p>Laporan keuangan tahunan perusahaan untuk tahun 2023.</p>
+                        </div>
+                        
+                        <div class="file-card">
+                            <h3>Gambar Proyek</h3>
+                            <div class="file-meta">Jenis: JPG | Ukuran: 1.8 MB</div>
+                            <p>Gambar terkini dari perkembangan proyek konstruksi.</p>
+                        </div>
+                        
+                        <div class="file-card">
+                            <h3>Dokumen Kontrak</h3>
+                            <div class="file-meta">Jenis: PDF | Ukuran: 3.1 MB</div>
+                            <p>Dokumen kontrak kerjasama dengan mitra bisnis.</p>
+                        </div>
+                        
+                        <div class="file-card">
+                            <h3>Presentasi Perusahaan</h3>
+                            <div class="file-meta">Jenis: PDF | Ukuran: 5.2 MB</div>
+                            <p>Presentasi overview perusahaan dan portofolio produk.</p>
+                        </div>
+                        
+                        <div class="file-card">
+                            <h3>Foto Produk</h3>
+                            <div class="file-meta">Jenis: JPG | Ukuran: 950 KB</div>
+                            <p>Kumpulan foto produk terbaru dengan kualitas tinggi.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 class="card-title">Status Pengajuan Terbaru</h2>
+            <table id="requestsTable">
+                <thead>
+                    <tr>
+                        <th>Kode File</th>
+                        <th>Nama</th>
+                        <th>Email</th>
+                        <th>File Diminta</th>
+                        <th>Status</th>
+                        <th>Tanggal Pengajuan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data akan diisi oleh JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000'; // URL backend Node.js
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle form submission
+            document.getElementById('requestForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('email').value;
+                const name = document.getElementById('name').value;
+                const idNumber = document.getElementById('idNumber').value;
+                const phone = document.getElementById('phone').value;
+                const fileRequest = document.getElementById('fileRequest').value;
+                const purpose = document.getElementById('purpose').value;
+                
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/requests`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email,
+                            name,
+                            idNumber,
+                            phone,
+                            fileRequest,
+                            purpose
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        // Reset form
+                        document.getElementById('requestForm').reset();
+                        
+                        // Tampilkan notifikasi
+                        const searchResults = document.getElementById('searchResults');
+                        searchResults.innerHTML = `
+                            <div class="notification warning">
+                                <h3>Permintaan Anda sedang diproses</h3>
+                                <p>Kode File: <strong>${result.fileCode}</strong></p>
+                                <p>Silakan tunggu hingga 24 jam untuk proses verifikasi. Anda akan menerima email ketika permintaan Anda disetujui.</p>
+                            </div>
+                        `;
+                        
+                        // Reload tabel
+                        loadRequests();
+                    } else {
+                        alert(`Error: ${result.error}`);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat mengajukan permintaan. Silakan coba lagi.');
+                }
+            });
+            
+            // Handle search
+            document.getElementById('searchButton').addEventListener('click', async function() {
+                const searchTerm = document.getElementById('searchInput').value;
+                
+                if (!searchTerm) {
+                    alert('Masukkan kata kunci pencarian');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/requests/search?q=${encodeURIComponent(searchTerm)}`);
+                    const results = await response.json();
+                    
+                    displaySearchResults(results);
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat mencari.');
+                }
+            });
+            
+            function displaySearchResults(requests) {
+                const searchResults = document.getElementById('searchResults');
+                
+                if (requests.length === 0) {
+                    searchResults.innerHTML = '<p>Tidak ada hasil ditemukan.</p>';
+                    return;
+                }
+                
+                let html = '';
+                requests.forEach(request => {
+                    const statusClass = request.status === 'Disetujui' ? 'status-approved' : 'status-pending';
+                    
+                    html += `
+                        <div class="file-card">
+                            <h3>${request.name} (${request.fileCode})</h3>
+                            <p><strong>Email:</strong> ${request.email}</p>
+                            <p><strong>File Diminta:</strong> ${getFileName(request.fileRequest)}</p>
+                            <p><strong>Status:</strong> <span class="${statusClass}">${request.status}</span></p>
+                            <p><strong>Tanggal Pengajuan:</strong> ${new Date(request.requestDate).toLocaleString('id-ID')}</p>
+                            ${request.approvalDate ? `<p><strong>Disetujui pada:</strong> ${new Date(request.approvalDate).toLocaleString('id-ID')}</p>` : ''}
+                            ${request.status === 'Disetujui' ? 
+                                `<button class="btn-success" onclick="downloadFile('${request.fileCode}')">Download File</button>` : 
+                                ''}
+                        </div>
+                    `;
+                });
+                
+                searchResults.innerHTML = html;
+            }
+            
+            async function loadRequests() {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/requests`);
+                    const requests = await response.json();
+                    
+                    displayRequests(requests);
+                } catch (error) {
+                    console.error('Error loading requests:', error);
+                }
+            }
+            
+            function displayRequests(requests) {
+                const tbody = document.querySelector('#requestsTable tbody');
+                tbody.innerHTML = '';
+                
+                // Urutkan berdasarkan tanggal terbaru
+                requests.sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
+                
+                // Batasi hanya 5 entri terbaru
+                const recentRequests = requests.slice(0, 5);
+                
+                recentRequests.forEach(request => {
+                    const statusClass = request.status === 'Disetujui' ? 'status-approved' : 'status-pending';
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${request.fileCode}</td>
+                        <td>${request.name}</td>
+                        <td>${request.email}</td>
+                        <td>${getFileName(request.fileRequest)}</td>
+                        <td class="${statusClass}">${request.status}</td>
+                        <td>${new Date(request.requestDate).toLocaleString('id-ID')}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+            
+            function getFileName(fileCode) {
+                const files = {
+                    'file1': 'Laporan Keuangan 2023 (PDF)',
+                    'file2': 'Gambar Proyek (JPG)',
+                    'file3': 'Dokumen Kontrak (PDF)',
+                    'file4': 'Presentasi Perusahaan (PDF)',
+                    'file5': 'Foto Produk (JPG)'
+                };
+                return files[fileCode] || 'File Tidak Dikenal';
+            }
+            
+            // Simulasi fungsi download (dalam implementasi nyata akan terhubung ke GDrive atau server)
+            window.downloadFile = async function(fileCode) {
+                try {
+                    // Dapatkan URL download dari server
+                    const response = await fetch(`${API_BASE_URL}/api/requests/${fileCode}/download`);
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        // Redirect ke URL download atau buka di tab baru
+                        window.open(result.downloadUrl, '_blank');
+                    } else {
+                        alert('Error: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Download error:', error);
+                    alert('Terjadi kesalahan saat mendownload file.');
+                }
+            };
+            
+            // Load data awal
+            loadRequests();
+        });
+    </script>
+</body>
+</html>
